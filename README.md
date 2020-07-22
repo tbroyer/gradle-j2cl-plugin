@@ -34,3 +34,9 @@ you can set it up once and for all in your `~/.gradle/gradle.properties`:
 ```properties
 j2cl-project-root=<path to J2CL project root>
 ```
+
+The plugin is currently tested/exercized using sample projects in the `samples/` folder.
+Switch to a sample's folder then build it,
+this will automatically build the plugin as a [composite build].
+
+[composite build]: https://docs.gradle.org/current/userguide/composite_builds.html
