@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+
+env:
+  J2CL_COMMIT: 2edfff1f01699ace3f3603c07e590cd7e2e1c241
+  J2CL_DIR: j2cl
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache J2CL artifacts
+        id: j2cl-cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ env.J2CL_DIR }}/bazel-bin/transpiler/java/com/google/j2cl/transpiler/J2clCommandLineRunner_deploy.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/transpiler/java/com/google/j2cl/transpiler/libcommandlinerunner_lib.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/tools/java/com/google/j2cl/tools/gwtincompatible/GwtIncompatibleStripper_deploy.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/tools/java/com/google/j2cl/tools/gwtincompatible/libgwtincompatible_lib.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/transpiler/java/com/google/j2cl/common/libcommon-hjar.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/jre/java/libjre-hjar.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/jre/java/jre.js.zip
+            ${{ env.J2CL_DIR }}/bazel-bin/jre/java/libjre_bootclasspath.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/external/org_gwtproject_gwt/user/libgwt-javaemul-internal-annotations.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/junit/emul/java/libjunit_emul-hjar.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/junit/emul/java/junit_emul.js.zip
+            ${{ env.J2CL_DIR }}/bazel-bin/junit/generator/java/com/google/j2cl/junit/apt/libjunit_processor.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/junit/generator/java/com/google/j2cl/junit/apt/libinternal_junit_annotations.jar
+            ${{ env.J2CL_DIR }}/bazel-bin/junit/generator/java/com/google/j2cl/junit/async/libasync.jar
+            ${{ env.J2CL_DIR }}/bazel-*/external/com_google_javascript_closure_library/**/*.js
+          key: j2cl-v1-${{ env.J2CL_COMMIT }}
+
+      - name: Checkout J2CL
+        if: steps.j2cl-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: google/j2cl
+          ref: ${{ env.J2CL_COMMIT }}
+          path: ${{ env.J2CL_DIR }}
+
+      - name: Build J2CL
+        if: steps.j2cl-cache.outputs.cache-hit != 'true'
+        working-directory: ${{ env.J2CL_DIR }}
+        run: |
+          bazel build //transpiler/java/com/google/j2cl/transpiler:J2clCommandLineRunner_deploy.jar
+          bazel build //tools/java/com/google/j2cl/tools/gwtincompatible:GwtIncompatibleStripper_deploy.jar
+          bazel build //jre/java:jre //jre/java:jre_bootclasspath
+          bazel build //junit/emul/java:junit_emul //junit/generator/java/com/google/j2cl/junit/...
+          # Must be last, as it actually only sets up the execroot
+          bazel build $(bazel query 'filter('closure_.*', //third_party/...)')
+          bazel shutdown
+
+      - name: Build with Gradle
+        id: gradle-build
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: build --stacktrace "-Pj2cl-project-root=${{ env.J2CL_DIR }}"
+
+      - name: Store reports
+        if: steps.gradle-build.outcome == 'success' || steps.gradle-build.outcome == 'failure'
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-reports
+          path: build/reports/
+
+      # TODO: use Gradle TestKit (through gradle/examplar?) to build samples as smoke/functional tests
+      - name: Build manual-helloworld sample
+        uses: eskatos/gradle-command-action@v1
+        with:
+          build-root-directory: samples/manual-helloworld
+          arguments: build --stacktrace "-Pj2cl-project-root=${{ github.workspace }}/${{ env.J2CL_DIR }}"
