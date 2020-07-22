@@ -1,0 +1,7 @@
+# NOTE: we don't include IDE-specific files (e.g. IntelliJ's *.iml and .idea/) on-purpose.
+# Those patterns should go in a global gitignore or repository-specific excludes.
+# See https://docs.github.com/en/github/using-git/ignoring-files
+# and https://github.com/github/gitignore/tree/master/Global#readme
+
+build/
+.gradle/
