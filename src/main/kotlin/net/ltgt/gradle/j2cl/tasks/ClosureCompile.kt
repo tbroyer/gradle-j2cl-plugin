@@ -3,6 +3,7 @@ package net.ltgt.gradle.j2cl.tasks
 import com.google.javascript.jscomp.CommandLineRunner
 import com.google.javascript.jscomp.CompilationLevel
 import com.google.javascript.jscomp.CompilerOptions
+import net.ltgt.gradle.j2cl.internal.MOSHI
 import org.gradle.api.Action
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
@@ -187,15 +188,7 @@ private abstract class ClosureCompilerWorker : WorkAction<ClosureCompilerParamet
         )
         defines.putAll(options.defines.get())
 
-        // TODO: use proper JSON library
-        fun String.escape(): String = '"' + replace(Regex("""[\r\n"]"""), """\$0""") + '"'
-        config.writeText(
-            defines.asSequence().joinToString(
-                prefix = "var CLOSURE_DEFINES = {\n",
-                separator = ",\n",
-                postfix = "\n};"
-            ) { (k, v) -> "  ${k.escape()}: ${v.escape()}" }
-        )
+        config.writeText("var CLOSURE_DEFINES = ${MOSHI.adapter<Any>(Object::class.java).indent("  ").toJson(defines)};")
 
         return config
     }

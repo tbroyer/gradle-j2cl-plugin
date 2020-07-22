@@ -37,6 +37,9 @@ dependencies {
     compileOnly("com.google.javascript:closure-compiler:v20200628@jar")
     compileOnly("org.seleniumhq.selenium:selenium-java:3.141.59")
     compileOnly("org.seleniumhq.selenium:htmlunit-driver:2.42.0")
+
+    implementation("com.squareup.moshi:moshi:1.9.3")
+    implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
 }
 
 gradlePlugin {
