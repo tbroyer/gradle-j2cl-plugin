@@ -31,7 +31,13 @@ dependencies {
     gwtIncompatibleStripper(j2clBin("tools/java/com/google/j2cl/tools/gwtincompatible/GwtIncompatibleStripper_deploy.jar"))
     j2clTranspiler(j2clBin("transpiler/java/com/google/j2cl/transpiler/J2clCommandLineRunner_deploy.jar"))
     closureCompiler("com.google.javascript:closure-compiler:v20200628")
-    j2clBootstrapClasspath(j2clBin("jre/java/libjre_bootclasspath.jar"))
+    j2clBootstrapClasspath(
+        j2clBin(
+            "jre/java/libjre_bootclasspath.jar",
+            "external/org_gwtproject_gwt/user/libgwt-javaemul-internal-annotations.jar"
+        )
+    )
+    j2clBootstrapClasspath("com.google.jsinterop:jsinterop-annotations:2.0.0")
     j2clTestingAnnotationClasspath(j2clBin("junit/generator/java/com/google/j2cl/junit/apt/libinternal_junit_annotations.jar"))
     j2clTestingAnnotationProcessor(
         j2clBin(
@@ -48,13 +54,6 @@ dependencies {
         j2clTestingAnnotationProcessor(it) { because("Transitive dependency of libjunit_processor.jar") }
     }
 
-    compileClasspath(
-        j2clBin(
-            "jre/java/libjre-hjar.jar",
-            "external/org_gwtproject_gwt/user/libgwt-javaemul-internal-annotations.jar"
-        )
-    )
-    compileClasspath("com.google.jsinterop:jsinterop-annotations:2.0.0")
     closureCompile(
         files(
             j2clBin("jre/java/jre.js.zip"),
@@ -192,7 +191,7 @@ tasks {
         source(compileJava.flatMap { it.options.generatedSourceOutputDirectory })
         nativeJsSources.from("src/main/resources")
         destinationDirectory.set(layout.buildDirectory.dir("generated/sources/j2clTranspiler/java/main"))
-        classpath.from(compileJava.map { it.classpath })
+        classpath.from(compileJava.map { files(it.classpath, it.options.bootstrapClasspath) })
     }
     val compileClosure by registering(ClosureCompile::class) {
         source(transpileJ2cl.flatMap { it.destinationDirectory })

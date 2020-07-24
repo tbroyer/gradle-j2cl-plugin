@@ -9,7 +9,7 @@ on:
       - '**/*.md'
 
 env:
-  J2CL_COMMIT: 2edfff1f01699ace3f3603c07e590cd7e2e1c241
+  J2CL_COMMIT: bcf27bcb46e2b14aab58bd01b8ef620471b18aac
   J2CL_DIR: j2cl
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
@@ -29,7 +29,6 @@ jobs:
             ${{ env.J2CL_DIR }}/bazel-bin/tools/java/com/google/j2cl/tools/gwtincompatible/GwtIncompatibleStripper_deploy.jar
             ${{ env.J2CL_DIR }}/bazel-bin/tools/java/com/google/j2cl/tools/gwtincompatible/libgwtincompatible_lib.jar
             ${{ env.J2CL_DIR }}/bazel-bin/transpiler/java/com/google/j2cl/common/libcommon-hjar.jar
-            ${{ env.J2CL_DIR }}/bazel-bin/jre/java/libjre-hjar.jar
             ${{ env.J2CL_DIR }}/bazel-bin/jre/java/jre.js.zip
             ${{ env.J2CL_DIR }}/bazel-bin/jre/java/libjre_bootclasspath.jar
             ${{ env.J2CL_DIR }}/bazel-bin/external/org_gwtproject_gwt/user/libgwt-javaemul-internal-annotations.jar
