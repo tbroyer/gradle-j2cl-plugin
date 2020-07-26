@@ -1,6 +1,7 @@
 package net.ltgt.gradle.j2cl
 
 import net.ltgt.gradle.j2cl.tasks.ClosureCompile
+import net.ltgt.gradle.j2cl.tasks.ClosureCompileTests
 import net.ltgt.gradle.j2cl.tasks.GenerateTests
 import net.ltgt.gradle.j2cl.tasks.GwtIncompatibleStrip
 import net.ltgt.gradle.j2cl.tasks.J2clTranspile
@@ -84,6 +85,18 @@ class J2clBasePlugin : Plugin<Project> {
             bootstrapClasspath.from(j2clBootstrapClasspathConfiguration)
             annotationClasspath.from(j2clTestingAnnotationClasspathConfiguration)
             annotationProcessorPath.from(j2clTestingAnnotationProcessorConfiguration)
+        }
+        tasks.withType<ClosureCompileTests>().configureEach {
+            compilerClasspath.from(closureCompilerConfiguration)
+            options {
+                debug.convention(true)
+                exportTestFunctions.convention(true)
+                rewritePolyfills.convention(false)
+                compilationLevel.convention("SIMPLE")
+                jreLoggingLogLevel.convention("OFF")
+                jreChecksCheckLevel.convention("NORMAL")
+                jreClassMetadata.convention("STRIPPED")
+            }
         }
     }
 }

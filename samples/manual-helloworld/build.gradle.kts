@@ -1,4 +1,5 @@
 import net.ltgt.gradle.j2cl.tasks.ClosureCompile
+import net.ltgt.gradle.j2cl.tasks.ClosureCompileTests
 import net.ltgt.gradle.j2cl.tasks.GenerateTests
 import net.ltgt.gradle.j2cl.tasks.GwtIncompatibleStrip
 import net.ltgt.gradle.j2cl.tasks.J2clTranspile
@@ -236,8 +237,26 @@ tasks {
         destinationDirectory.set(layout.buildDirectory.dir("generated/sources/j2clTesting/java/test"))
         sourceCompatibility.set(provider { java.sourceCompatibility })
     }
-    // TODO: closureCompile tests (from generated test_summary.json) and j2clTest
+    val transpileTestJ2cl by registering(J2clTranspile::class) {
+        source(stripTestGwtIncompatible.flatMap { it.destinationDirectory })
+        source(compileTestJava.flatMap { it.options.generatedSourceOutputDirectory })
+        source(generateTests.flatMap { it.destinationDirectory })
+        exclude("**/*.testsuite", "**/*.json")
+        nativeJsSources.from("src/test/resources")
+        destinationDirectory.set(layout.buildDirectory.dir("generated/sources/j2clTranspiler/java/test"))
+        classpath.from(compileTestJava.map { files(it.classpath, it.options.bootstrapClasspath) })
+    }
+    val compileClosureTests by registering(ClosureCompileTests::class) {
+        source(transpileJ2cl.flatMap { it.destinationDirectory })
+        source(fileTree("src/main/java") { exclude("**/*.native.js") })
+        source(fileTree(generateTests.flatMap { it.destinationDirectory }) { include("**/*.testsuite", "**/*.json") })
+        source(transpileTestJ2cl.flatMap { it.destinationDirectory })
+        source(fileTree("src/test/java") { exclude("**/*.native.js") })
+        source(testClosureCompile)
+        destinationDirectory.set(layout.buildDirectory.dir("closureTests"))
+    }
+    // TODO: j2clTest
     check {
-        dependsOn(generateTests)
+        dependsOn(compileClosureTests)
     }
 }
