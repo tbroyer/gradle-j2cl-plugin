@@ -2,6 +2,7 @@ import net.ltgt.gradle.j2cl.tasks.ClosureCompile
 import net.ltgt.gradle.j2cl.tasks.ClosureCompileTests
 import net.ltgt.gradle.j2cl.tasks.GenerateTests
 import net.ltgt.gradle.j2cl.tasks.GwtIncompatibleStrip
+import net.ltgt.gradle.j2cl.tasks.J2clTest
 import net.ltgt.gradle.j2cl.tasks.J2clTranspile
 
 plugins {
@@ -54,6 +55,7 @@ dependencies {
     ).forEach {
         j2clTestingAnnotationProcessor(it) { because("Transitive dependency of libjunit_processor.jar") }
     }
+    webDriver("org.seleniumhq.selenium:selenium-java:3.141.59")
 
     closureCompile(
         files(
@@ -255,8 +257,10 @@ tasks {
         source(testClosureCompile)
         destinationDirectory.set(layout.buildDirectory.dir("closureTests"))
     }
-    // TODO: j2clTest
+    val j2clTest by registering(J2clTest::class) {
+        testsDirectory.set(compileClosureTests.flatMap { it.destinationDirectory })
+    }
     check {
-        dependsOn(compileClosureTests)
+        dependsOn(j2clTest)
     }
 }

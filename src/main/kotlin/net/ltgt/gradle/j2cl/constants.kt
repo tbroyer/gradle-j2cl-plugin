@@ -11,3 +11,5 @@ internal const val J2CL_BOOTSTRAP_CLASSPATH_CONFIGURATION_NAME = "j2clBootstrapC
 internal const val J2CL_TESTING_ANNOTATION_CLASSPATH = "j2clTestingAnnotationClasspath"
 
 internal const val J2CL_TESTING_ANNOTATION_PROCESSOR = "j2clTestingAnnotationProcessor"
+
+internal const val WEB_DRIVER_CONFIGURATION_NAME = "webDriver"

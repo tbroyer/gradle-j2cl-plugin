@@ -4,14 +4,17 @@ import net.ltgt.gradle.j2cl.tasks.ClosureCompile
 import net.ltgt.gradle.j2cl.tasks.ClosureCompileTests
 import net.ltgt.gradle.j2cl.tasks.GenerateTests
 import net.ltgt.gradle.j2cl.tasks.GwtIncompatibleStrip
+import net.ltgt.gradle.j2cl.tasks.J2clTest
 import net.ltgt.gradle.j2cl.tasks.J2clTranspile
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
+import org.gradle.testing.base.plugins.TestingBasePlugin
 
 /**
  * A simple 'hello world' plugin.
@@ -61,6 +64,12 @@ class J2clBasePlugin : Plugin<Project> {
             isCanBeConsumed = false
             description = "The J2clTestingProcessor libraries to be used by this project"
         }
+        val webdriverConfiguration = configurations.create(WEB_DRIVER_CONFIGURATION_NAME) {
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            description = "The WebDriver libraries to be used by this project"
+        }
 
         tasks.withType<GwtIncompatibleStrip>().configureEach {
             stripperClasspath.from(gwtIncompatibleStripperConfiguration)
@@ -97,6 +106,10 @@ class J2clBasePlugin : Plugin<Project> {
                 jreChecksCheckLevel.convention("NORMAL")
                 jreClassMetadata.convention("STRIPPED")
             }
+        }
+        tasks.withType<J2clTest>().configureEach {
+            reportsDirectory.set(project.the<ReportingExtension>().baseDirectory.dir("${TestingBasePlugin.TESTS_DIR_NAME}/$name"))
+            webdriverClasspath.from(webdriverConfiguration)
         }
     }
 }
